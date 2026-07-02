@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: secure-login-service
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/securelogin}
+    username: ${DB_USERNAME:securelogin}
+    password: ${DB_PASSWORD:securelogin}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+jwt:
+  secret: ${JWT_SECRET:change-me-in-production-must-be-at-least-32-chars}
+  expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
+  email:
+    from: ${EMAIL_FROM:noreply@securelogin.com}
+
+logging:
+  level:
+    com.securelogin: INFO
+    org.springframework.security: WARN
