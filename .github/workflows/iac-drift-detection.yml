@@ -1,0 +1,88 @@
+name: Terraform Drift Detection
+'on':
+  schedule:
+  - cron: 0 6 * * *
+  workflow_dispatch: {}
+permissions:
+  id-token: write
+  contents: read
+  issues: write
+jobs:
+  drift-dev:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ vars.TERRAFORM_VERSION || '1.7' }}
+    - name: Terraform Init (dev)
+      run: terraform init -backend-config=backends/dev.hcl
+      working-directory: ${{ vars.TF_WORKING_DIR || '.' }}
+    - name: Terraform Plan - Detect Drift (dev)
+      id: plan
+      run: terraform plan -var-file=environments/dev.tfvars -detailed-exitcode -no-color
+      working-directory: ${{ vars.TF_WORKING_DIR || '.' }}
+      continue-on-error: true
+    - name: Create Issue on Drift (dev)
+      uses: actions/github-script@v7
+      if: steps.plan.outcome == 'failure'
+      with:
+        script: "github.rest.issues.create({\n  owner: context.repo.owner,\n  repo: context.repo.repo,\n  title: '\u26A0\uFE0F\
+          \ Terraform Drift Detected - dev',\n  body: 'Drift detected in the **dev** environment during scheduled drift detection.\\\
+          n\\nPlease review the Terraform plan output in the workflow run and reconcile the infrastructure state.\\n\\n**Environment:**\
+          \ dev\\n**Detected at:** ' + new Date().toISOString() + '\\n\\nRun `terraform plan` locally to see the full diff.',\n\
+          \  labels: ['infrastructure', 'drift-detected']\n});"
+  drift-staging:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ vars.TERRAFORM_VERSION || '1.7' }}
+    - name: Terraform Init (staging)
+      run: terraform init -backend-config=backends/staging.hcl
+      working-directory: ${{ vars.TF_WORKING_DIR || '.' }}
+    - name: Terraform Plan - Detect Drift (staging)
+      id: plan
+      run: terraform plan -var-file=environments/staging.tfvars -detailed-exitcode -no-color
+      working-directory: ${{ vars.TF_WORKING_DIR || '.' }}
+      continue-on-error: true
+    - name: Create Issue on Drift (staging)
+      uses: actions/github-script@v7
+      if: steps.plan.outcome == 'failure'
+      with:
+        script: "github.rest.issues.create({\n  owner: context.repo.owner,\n  repo: context.repo.repo,\n  title: '\u26A0\uFE0F\
+          \ Terraform Drift Detected - staging',\n  body: 'Drift detected in the **staging** environment during scheduled\
+          \ drift detection.\\n\\nPlease review the Terraform plan output in the workflow run and reconcile the infrastructure\
+          \ state.\\n\\n**Environment:** staging\\n**Detected at:** ' + new Date().toISOString() + '\\n\\nRun `terraform plan`\
+          \ locally to see the full diff.',\n  labels: ['infrastructure', 'drift-detected']\n});"
+  drift-prod:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ vars.TERRAFORM_VERSION || '1.7' }}
+    - name: Terraform Init (prod)
+      run: terraform init -backend-config=backends/prod.hcl
+      working-directory: ${{ vars.TF_WORKING_DIR || '.' }}
+    - name: Terraform Plan - Detect Drift (prod)
+      id: plan
+      run: terraform plan -var-file=environments/prod.tfvars -detailed-exitcode -no-color
+      working-directory: ${{ vars.TF_WORKING_DIR || '.' }}
+      continue-on-error: true
+    - name: Create Issue on Drift (prod)
+      uses: actions/github-script@v7
+      if: steps.plan.outcome == 'failure'
+      with:
+        script: "github.rest.issues.create({\n  owner: context.repo.owner,\n  repo: context.repo.repo,\n  title: '\u26A0\uFE0F\
+          \ Terraform Drift Detected - prod',\n  body: 'Drift detected in the **prod** environment during scheduled drift\
+          \ detection.\\n\\nPlease review the Terraform plan output in the workflow run and reconcile the infrastructure state.\\\
+          n\\n**Environment:** prod\\n**Detected at:** ' + new Date().toISOString() + '\\n\\nRun `terraform plan` locally\
+          \ to see the full diff.',\n  labels: ['infrastructure', 'drift-detected']\n});"

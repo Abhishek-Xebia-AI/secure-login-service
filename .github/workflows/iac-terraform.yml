@@ -1,0 +1,30 @@
+name: Terraform IaC
+'on':
+  pull_request:
+    branches:
+    - main
+    - master
+    paths:
+    - '**/*.tf'
+    - '**/*.tfvars'
+    - '**/backends/*.hcl'
+  push:
+    branches:
+    - main
+    - master
+    paths:
+    - '**/*.tf'
+    - '**/*.tfvars'
+    - '**/backends/*.hcl'
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  issues: write
+jobs:
+  terraform:
+    uses: ./.github/workflows/iac-terraform-reusable.yml
+    with:
+      terraform_version: ${{ vars.TERRAFORM_VERSION || '1.7' }}
+      working_directory: ${{ vars.TF_WORKING_DIR || '.' }}
+    secrets: inherit

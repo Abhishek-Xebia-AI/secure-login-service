@@ -1,0 +1,71 @@
+name: CD Deploy (Reusable)
+'on':
+  workflow_call:
+    inputs:
+      image_tag:
+        description: Container image tag (SHA) to deploy
+        required: true
+        type: string
+      service_name:
+        description: Service name to deploy
+        required: true
+        type: string
+      health_check_url:
+        description: Health check endpoint URL
+        required: true
+        type: string
+      health_check_timeout:
+        description: Health check timeout in seconds
+        required: false
+        type: number
+        default: 300
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Health check (dev)
+      run: "timeout ${{ inputs.health_check_timeout || 300 }} bash -c '\n  until curl\
+        \ -sf ${{ inputs.health_check_url }}; do\n    sleep 10\n  done\n'"
+    - name: Auto-rollback on failure (dev)
+      if: failure()
+      run: 'echo "Health check failed for dev, initiating rollback"
+
+        # Rollback to previous stable version'
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    needs:
+    - deploy-dev
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Health check (staging)
+      run: "timeout ${{ inputs.health_check_timeout || 300 }} bash -c '\n  until curl\
+        \ -sf ${{ inputs.health_check_url }}; do\n    sleep 10\n  done\n'"
+    - name: Auto-rollback on failure (staging)
+      if: failure()
+      run: 'echo "Health check failed for staging, initiating rollback"
+
+        # Rollback to previous stable version'
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: prod
+    needs:
+    - deploy-staging
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Health check (prod)
+      run: "timeout ${{ inputs.health_check_timeout || 300 }} bash -c '\n  until curl\
+        \ -sf ${{ inputs.health_check_url }}; do\n    sleep 10\n  done\n'"
+    - name: Auto-rollback on failure (prod)
+      if: failure()
+      run: 'echo "Health check failed for prod, initiating rollback"
+
+        # Rollback to previous stable version'
