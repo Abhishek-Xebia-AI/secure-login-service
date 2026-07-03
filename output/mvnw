@@ -43,4 +43,8 @@ if [ ! -f "$MAVEN_WRAPPER_JAR" ]; then
   fi
 fi
 
-exec "$JAVA_CMD" -jar "$MAVEN_WRAPPER_JAR" "$@"
+# maven-wrapper.jar has no Main-Class manifest; launch the wrapper via classpath
+exec "$JAVA_CMD" \
+  -classpath "$MAVEN_WRAPPER_JAR" \
+  "-Dmaven.multiModuleProjectDirectory=$(pwd)" \
+  org.apache.maven.wrapper.MavenWrapperMain "$@"

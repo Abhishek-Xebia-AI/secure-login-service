@@ -8,7 +8,10 @@ COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -q
+# Normalize line endings (files may carry Windows CRLF) and make wrapper executable
+RUN sed -i 's/\r$//' mvnw .mvn/wrapper/maven-wrapper.properties \
+  && chmod +x mvnw \
+  && ./mvnw dependency:go-offline -q
 
 # Copy source and build
 COPY src src

@@ -1,0 +1,4 @@
+# Keep shell scripts and the Maven wrapper LF so they run in Linux containers
+mvnw text eol=lf
+*.sh text eol=lf
+*.properties text eol=lf
