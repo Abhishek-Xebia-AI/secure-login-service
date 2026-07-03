@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.securelogin.adapter.inbound.rest.dto.LoginRequest;
 import com.securelogin.domain.exception.AuthenticationException;
 import com.securelogin.domain.port.inbound.LoginUseCase;
+import com.securelogin.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Slice tests for AuthController.
  */
 @WebMvcTest(AuthController.class)
+@Import(SecurityConfig.class)
 @ActiveProfiles("test")
 class AuthControllerTest {
 
