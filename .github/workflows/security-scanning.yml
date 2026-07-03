@@ -15,5 +15,5 @@ jobs:
   security-scan:
     uses: ./.github/workflows/security-scanning-reusable.yml
     with:
-      scan_types: sast,sbom,sca,container
+      scan_types: sca,container,sast,sbom
     secrets: inherit
