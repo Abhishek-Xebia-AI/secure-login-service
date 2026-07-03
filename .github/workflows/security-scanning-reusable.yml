@@ -26,8 +26,8 @@ jobs:
       uses: actions/checkout@v4
     - name: Set up Snyk CLI
       run: npm install -g snyk && snyk auth $SNYK_TOKEN
-    - name: Snyk SCA scan
-      run: snyk test --severity-threshold=high
+    - name: Snyk SCA scan - output/pom.xml
+      run: snyk test --severity-threshold=high --file=output/pom.xml
   container:
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +40,8 @@ jobs:
     - name: Build image for scanning
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: output
+        file: output/Dockerfile
         push: false
         load: true
         tags: scan-target:${{ github.sha }}
@@ -63,7 +64,7 @@ jobs:
     - name: Set up Snyk CLI
       run: npm install -g snyk && snyk auth $SNYK_TOKEN
     - name: Generate SBOM (Snyk)
-      run: snyk sbom --format=cyclonedx1.4+json > sbom.cyclonedx.json
+      run: snyk sbom --file=output/pom.xml --format=cyclonedx1.4+json > sbom.cyclonedx.json
     - name: Upload SBOM as artifact
       uses: actions/upload-artifact@v4
       with:
