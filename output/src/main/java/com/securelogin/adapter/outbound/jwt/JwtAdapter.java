@@ -49,11 +49,11 @@ public class JwtAdapter implements JwtPort {
     @Override
     public String validateTokenAndGetSubject(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(signingKey)
+            Claims claims = Jwts.parser()
+                    .verifyWith((javax.crypto.SecretKey) signingKey)
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseSignedClaims(token)
+                    .getPayload();
             return claims.getSubject();
         } catch (JwtException e) {
             log.warn("JWT validation failed: {}", e.getMessage());
